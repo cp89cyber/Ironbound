@@ -72,6 +72,8 @@ class WarGame {
     initializeElements() {
         this.playButton = document.getElementById('play-button');
         this.newGameButton = document.getElementById('new-game-button');
+        this.player1DeckElement = document.getElementById('player1-deck');
+        this.player2DeckElement = document.getElementById('player2-deck');
         this.player1CardsElement = document.getElementById('player1-cards');
         this.player2CardsElement = document.getElementById('player2-cards');
         this.player1CardElement = document.getElementById('player1-card');
@@ -81,9 +83,24 @@ class WarGame {
         this.warCardsElement = document.getElementById('war-cards');
     }
 
+    addActivateListener(element, handler) {
+        if (!element) return;
+
+        const activateEvent = window.PointerEvent ? 'pointerup' : 'click';
+        element.addEventListener(activateEvent, (e) => {
+            if (window.PointerEvent && e instanceof PointerEvent) {
+                if (e.pointerType === 'mouse' && e.button !== 0) return;
+            }
+            handler();
+        }, { passive: true });
+    }
+
     initializeEventListeners() {
-        this.playButton.addEventListener('click', () => this.playRound());
-        this.newGameButton.addEventListener('click', () => this.startNewGame());
+        this.addActivateListener(this.playButton, () => this.playRound());
+        this.addActivateListener(this.newGameButton, () => this.startNewGame());
+
+        this.addActivateListener(this.player1DeckElement, () => this.playRound());
+        this.addActivateListener(this.player2DeckElement, () => this.playRound());
     }
 
     setTrackedTimeout(callback, delay) {
@@ -122,6 +139,8 @@ class WarGame {
         this.gameMessageElement.textContent = 'Click "Play Card" to start!';
         this.warZoneElement.style.display = 'none';
         this.playButton.disabled = false;
+        this.player1DeckElement.classList.remove('is-disabled');
+        this.player2DeckElement.classList.remove('is-disabled');
     }
 
     playRound() {
@@ -134,6 +153,8 @@ class WarGame {
         this.player2CardElement.classList.remove('card-flip', 'pulse', 'shake');
         this.clearCards();
         this.playButton.disabled = true;
+        this.player1DeckElement.classList.add('is-disabled');
+        this.player2DeckElement.classList.add('is-disabled');
         
         this.player1Card = this.player1Deck.shift();
         this.player2Card = this.player2Deck.shift();
@@ -260,6 +281,8 @@ class WarGame {
             this.endGame();
         } else {
             this.playButton.disabled = false;
+            this.player1DeckElement.classList.remove('is-disabled');
+            this.player2DeckElement.classList.remove('is-disabled');
             this.gameMessageElement.textContent = 'Click "Play Card" for next round';
         }
     }
@@ -278,6 +301,8 @@ class WarGame {
         this.clearTrackedTimeouts();
         this.gameOver = true;
         this.playButton.disabled = true;
+        this.player1DeckElement.classList.add('is-disabled');
+        this.player2DeckElement.classList.add('is-disabled');
         
         let winner;
         if (this.player1Deck.length > this.player2Deck.length) {
